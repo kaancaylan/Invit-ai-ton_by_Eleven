@@ -11,15 +11,33 @@ from src.preprocessor import get_and_merge_data
 df = get_and_merge_data()
 
 as_idx = ["action_id", "client_id"]
-to_drop = ["transaction_date", "action_start_date", "action_end_date", "client_is_invited", "transaction_id",
-           "gross_amount_euro_before", "gross_amount_euro_after"]
-categorical_cols = ["action_type_label", "action_subcategory_label", "action_collection", "action_universe", "action_category_label",
-                    "action_channel", "action_label", "product_category", "product_subcategory", "product_style", "client_country", 
-                    "client_city", ]
+to_drop = [
+    "transaction_date",
+    "action_start_date",
+    "action_end_date",
+    "client_is_invited",
+    "transaction_id",
+    "gross_amount_euro_before",
+    "gross_amount_euro_after",
+]
+categorical_cols = [
+    "action_type_label",
+    "action_subcategory_label",
+    "action_collection",
+    "action_universe",
+    "action_category_label",
+    "action_channel",
+    "action_label",
+    "product_category",
+    "product_subcategory",
+    "product_style",
+    "client_country",
+    "client_city",
+]
 
 df = df.set_index(as_idx, drop=True)
 df = df.drop(to_drop, axis=1)
-df["action_duration"] = df["action_duration"].dt.total_seconds() / (60*60*24)
+df["action_duration"] = df["action_duration"].dt.total_seconds() / (60 * 60 * 24)
 # Set the maximum number of categories for OneHotEncoder
 
 max_categories = 15
@@ -28,21 +46,38 @@ max_categories = 15
 threshold_frequency = 2
 
 # Create the pipeline
-pipeline = Pipeline([
-    ('preprocessor', ColumnTransformer(
-        transformers=[
-            ('cat', Pipeline([
-                ('onehot', OneHotEncoder(handle_unknown='ignore', max_categories=max_categories)),
-            ]), categorical_cols)
-        ],
-        remainder='passthrough'
-    )),
-    ('classifier', XGBRegressor())
-])
+pipeline = Pipeline(
+    [
+        (
+            "preprocessor",
+            ColumnTransformer(
+                transformers=[
+                    (
+                        "cat",
+                        Pipeline(
+                            [
+                                (
+                                    "onehot",
+                                    OneHotEncoder(
+                                        handle_unknown="ignore",
+                                        max_categories=max_categories,
+                                    ),
+                                ),
+                            ]
+                        ),
+                        categorical_cols,
+                    )
+                ],
+                remainder="passthrough",
+            ),
+        ),
+        ("classifier", XGBRegressor()),
+    ]
+)
 
 # Split the data into features and target
-X = df.drop('incremental_sales', axis=1)
-y = df['incremental_sales']
+X = df.drop("incremental_sales", axis=1)
+y = df["incremental_sales"]
 
 # Use GroupShuffleSplit for a group-wise split
 groups = df.index.get_level_values(0)

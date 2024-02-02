@@ -1,6 +1,9 @@
 import pandas as pd
 
-def get_and_merge_data(data_dir: str = "data", merge_colname: str = "client_id") -> pd.DataFrame:
+
+def get_and_merge_data(
+    data_dir: str = "data", merge_colname: str = "client_id"
+) -> pd.DataFrame:
     """get data from filepaths and merge them together
 
     Args:
@@ -16,6 +19,3 @@ def get_and_merge_data(data_dir: str = "data", merge_colname: str = "client_id")
     df = pd.merge(df_transactions, df_clients, on=merge_colname, how="left")
     df = pd.merge(df, df_actions, on=merge_colname, how="left")
     return df
-
-
-
